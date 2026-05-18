@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PSTN Día 2 | EPN Telecomunicaciones</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#030810;--sf:#08122a;--s2:#0d1c3d;--s3:#112048;
+  --c:#00e5ff;--g:#00ff9d;--o:#ff9100;--r:#ff3d5a;--p:#c77dff;--y:#ffd600;
+  --t:#d0e8ff;--d:#4a6a8a;--b:rgba(0,229,255,.18);
+  --glow:0 0 24px rgba(0,229,255,.45);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;font-family:'Exo 2',sans-serif;background:var(--bg);color:var(--t);user-select:none}
+#bg{position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse 80% 60% at 10% 50%,rgba(0,25,55,.9),transparent 65%),
+             radial-gradient(ellipse 50% 70% at 90% 30%,rgba(0,5,20,.7),transparent 70%),var(--bg)}
+.star{position:absolute;border-radius:50%;background:#fff;animation:tw linear infinite}
+@keyframes tw{0%,100%{opacity:.08}50%{opacity:.7}}
+#grid{position:fixed;inset:0;z-index:0;opacity:.025;
+  background-image:linear-gradient(var(--c) 1px,transparent 1px),linear-gradient(90deg,var(--c) 1px,transparent 1px);
+  background-size:55px 55px}
+
+/* PROGRESS */
+#pb{position:fixed;top:0;left:0;right:0;height:3px;z-index:300;background:var(--s2)}
+#pf{height:100%;background:linear-gradient(90deg,var(--c),var(--y),var(--g));box-shadow:0 0 10px var(--c);transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* SLIDE ENGINE */
+#deck{position:relative;z-index:10;height:calc(100vh - 68px);overflow:hidden}
+.slide{position:absolute;inset:0;padding:28px 52px 16px;opacity:0;pointer-events:none;transform:translateX(70px);transition:opacity .4s ease,transform .4s cubic-bezier(.4,0,.2,1)}
+.slide.active{opacity:1;pointer-events:all;transform:none}
+.slide.exit{opacity:0;transform:translateX(-70px);transition:opacity .28s,transform .28s}
+
+/* HEADER */
+.sh{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--b);gap:12px}
+.st{font-family:'Orbitron',monospace;font-size:clamp(1rem,2.2vw,1.55rem);font-weight:700;color:var(--c);text-shadow:0 0 18px rgba(0,229,255,.4);letter-spacing:.04em;line-height:1.2}
+.sn{font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--d);padding:3px 11px;border:1px solid var(--b);border-radius:18px;white-space:nowrap;flex-shrink:0;margin-top:3px}
+.sb{height:calc(100% - 58px);overflow-y:auto;overflow-x:hidden;padding-right:4px}
+.sb::-webkit-scrollbar{width:3px}.sb::-webkit-scrollbar-thumb{background:var(--b);border-radius:2px}
+
+/* COVER */
+#s0{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:36px;text-align:center}
+.ctag{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--y);letter-spacing:.22em;opacity:.85}
+.cico{font-size:clamp(2.5rem,6vw,4rem);animation:fl 3s ease-in-out infinite}
+@keyframes fl{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-14px) rotate(4deg)}}
+.ctit{font-family:'Orbitron',monospace;font-size:clamp(1.6rem,4.5vw,3.4rem);font-weight:900;line-height:1.05;
+  background:linear-gradient(135deg,var(--g) 0%,var(--c) 40%,var(--y) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:cp 4s ease-in-out infinite}
+@keyframes cp{0%,100%{filter:drop-shadow(0 0 18px rgba(0,255,157,.4))}50%{filter:drop-shadow(0 0 40px rgba(0,255,157,.7))}}
+.csub{font-size:clamp(.8rem,1.7vw,1rem);color:var(--d);font-weight:300;max-width:580px}
+.cchips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.chip{padding:5px 14px;border:1px solid var(--b);border-radius:22px;font-size:.72rem;color:var(--c);background:rgba(0,229,255,.05);font-family:'Share Tech Mono',monospace;transition:all .3s}
+.chip:hover{border-color:var(--c);background:rgba(0,229,255,.12);box-shadow:var(--glow)}
+.hint{font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--d);animation:bk 2s ease-in-out infinite}
+@keyframes bk{0%,100%{opacity:.35}50%{opacity:.95}}
+
+/* RECAP */
+.recap-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+.rc{background:var(--sf);border:1px solid var(--b);border-radius:10px;padding:12px 10px;text-align:center;transition:all .3s;cursor:pointer;position:relative;overflow:hidden}
+.rc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--c),transparent)}
+.rc:hover{border-color:var(--c);transform:translateY(-2px);box-shadow:var(--glow)}
+.rc-ico{font-size:1.6rem;margin-bottom:5px}
+.rc-lbl{font-size:.72rem;font-family:'Orbitron',monospace;font-weight:700;color:var(--c);margin-bottom:3px}
+.rc-txt{font-size:.72rem;color:var(--d);line-height:1.4}
+
+/* CARDS */
+.cg{display:grid;gap:12px}.c2{grid-template-columns:1fr 1fr}.c3{grid-template-columns:1fr 1fr 1fr}.c4{grid-template-columns:1fr 1fr 1fr 1fr}
+.card{background:var(--sf);border:1px solid var(--b);border-radius:11px;padding:15px;transition:all .3s;position:relative;overflow:hidden}
+.card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--c),transparent);opacity:.5}
+.card:hover{border-color:var(--c);transform:translateY(-2px);box-shadow:var(--glow)}
+.card.yc::after{background:linear-gradient(90deg,var(--y),transparent)}.card.yc:hover{border-color:var(--y)}
+.card.gc::after{background:linear-gradient(90deg,var(--g),transparent)}.card.gc:hover{border-color:var(--g)}
+.card.pc::after{background:linear-gradient(90deg,var(--p),transparent)}.card.pc:hover{border-color:var(--p)}
+.card.rc-card::after{background:linear-gradient(90deg,var(--r),transparent)}.card.rc-card:hover{border-color:var(--r)}
+.ci{font-size:1.8rem;margin-bottom:7px}
+.ct{font-family:'Orbitron',monospace;font-size:.75rem;color:var(--y);font-weight:700;margin-bottom:6px;letter-spacing:.04em}
+.cd{font-size:.82rem;line-height:1.6;color:var(--t)}
+.hl{color:var(--c);font-weight:600}.hg{color:var(--g);font-weight:600}.ho{color:var(--o);font-weight:600}.hp{color:var(--p);font-weight:600}
+
+/* PILLS */
+.pills{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+.pill{padding:4px 13px;border:1px solid var(--b);border-radius:18px;font-size:.72rem;color:var(--d);font-family:'Share Tech Mono',monospace;display:flex;align-items:center;gap:5px}
+.pill .v{color:var(--c);font-weight:700}.pill.y .v{color:var(--y)}.pill.g .v{color:var(--g)}.pill.p .v{color:var(--p)}
+
+/* INTRO BOX */
+.intro{background:rgba(0,229,255,.04);border-left:3px solid var(--c);border-radius:0 9px 9px 0;padding:10px 16px;font-size:.86rem;line-height:1.65;margin-bottom:14px}
+.analogy{background:linear-gradient(135deg,rgba(255,214,0,.07),rgba(0,229,255,.05));border:1px solid rgba(255,214,0,.28);border-radius:12px;padding:12px 16px;margin-bottom:12px;display:flex;gap:12px;align-items:flex-start}
+.ana-ico{font-size:2rem;flex-shrink:0;margin-top:1px}
+.ana-tit{font-family:'Orbitron',monospace;font-size:.72rem;color:var(--y);font-weight:700;margin-bottom:5px}
+.ana-txt{font-size:.83rem;line-height:1.65}
+
+/* STEP LIST */
+.steps{display:flex;flex-direction:column;gap:7px}
+.step{display:flex;gap:11px;align-items:flex-start;padding:9px 13px;background:var(--sf);border-left:3px solid var(--c);border-radius:0 8px 8px 0;font-size:.83rem;line-height:1.55}
+.step.y{border-left-color:var(--y)}.step.g{border-left-color:var(--g)}.step.p{border-left-color:var(--p)}.step.r{border-left-color:var(--r)}
+.snum{font-family:'Orbitron',monospace;font-size:.85rem;color:var(--c);font-weight:900;flex-shrink:0}
+.step.y .snum{color:var(--y)}.step.g .snum{color:var(--g)}.step.p .snum{color:var(--p)}.step.r .snum{color:var(--r)}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:18px;font-size:.65rem;font-family:'Orbitron',monospace;font-weight:700;letter-spacing:.03em}
+.bc{background:rgba(0,229,255,.1);border:1px solid var(--c);color:var(--c)}
+.bg{background:rgba(0,255,157,.1);border:1px solid var(--g);color:var(--g)}
+.by{background:rgba(255,214,0,.1);border:1px solid var(--y);color:var(--y)}
+.br{background:rgba(255,61,90,.1);border:1px solid var(--r);color:var(--r)}
+.bp{background:rgba(199,125,255,.1);border:1px solid var(--p);color:var(--p)}
+
+/* DIVIDER */
+.div{display:flex;align-items:center;gap:8px;margin:10px 0}
+.div .ln{flex:1;height:1px;background:var(--b)}
+.div span{font-family:'Share Tech Mono',monospace;font-size:.67rem;color:var(--d);white-space:nowrap}
+
+/* FORMULA */
+.formula{font-family:'Share Tech Mono',monospace;font-size:.92rem;color:var(--c);background:rgba(0,229,255,.06);border:1px solid var(--b);border-radius:8px;padding:10px 18px;text-align:center;margin:10px 0}
+
+/* PCM CANVAS */
+#pcm-canvas{display:block;width:100%;height:180px;border-radius:10px;background:#000;border:1px solid var(--b);cursor:crosshair}
+.pcm-ctrl{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.sl-row{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--d)}
+.sl-row input[type=range]{-webkit-appearance:none;height:4px;background:var(--s2);border-radius:2px;outline:none;width:100px}
+.sl-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--c);cursor:pointer;box-shadow:0 0 6px var(--c)}
+.pcm-btn{padding:6px 16px;background:rgba(0,229,255,.1);border:1px solid var(--c);border-radius:18px;color:var(--c);cursor:pointer;font-family:'Orbitron',monospace;font-size:.68rem;font-weight:700;transition:all .3s}
+.pcm-btn:hover{background:rgba(0,229,255,.22);box-shadow:var(--glow)}
+.pcm-btn.y{border-color:var(--y);color:var(--y);background:rgba(255,214,0,.08)}.pcm-btn.y:hover{background:rgba(255,214,0,.18)}
+.pcm-btn.g{border-color:var(--g);color:var(--g);background:rgba(0,255,157,.08)}.pcm-btn.g:hover{background:rgba(0,255,157,.18)}
+.pcm-info{font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--d);padding:8px 12px;background:var(--sf);border-radius:7px;border:1px solid var(--b);margin-top:6px;line-height:1.6}
+
+/* QUANT DEMO */
+#qcanvas{display:block;width:100%;height:160px;background:#000;border-radius:10px;border:1px solid var(--b)}
+
+/* NUMBER PLAN */
+.num-display{font-family:'Share Tech Mono',monospace;font-size:2rem;color:var(--g);background:#000;border:1px solid var(--b);border-radius:10px;padding:12px 20px;margin-bottom:10px;letter-spacing:.15em;min-height:58px}
+.num-breakdown{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
+.nb-seg{padding:8px 12px;border-radius:7px;font-family:'Share Tech Mono',monospace;font-size:.75rem;text-align:center;border:1px solid;flex-shrink:0}
+.nb-seg.cc{background:rgba(255,214,0,.12);border-color:var(--y);color:var(--y)}
+.nb-seg.ndc{background:rgba(199,125,255,.12);border-color:var(--p);color:var(--p)}
+.nb-seg.sn{background:rgba(0,229,255,.12);border-color:var(--c);color:var(--c)}
+.nb-seg.ext{background:rgba(0,255,157,.12);border-color:var(--g);color:var(--g)}
+.num-pad{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;max-width:260px}
+.nkey{padding:10px;background:var(--s2);border:1px solid var(--b);border-radius:8px;color:var(--t);font-family:'Orbitron',monospace;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .15s;text-align:center}
+.nkey:hover{background:rgba(0,229,255,.12);border-color:var(--c)}.nkey:active{transform:scale(.91)}
+.nkey.act{background:rgba(0,229,255,.25);border-color:var(--c);box-shadow:0 0 8px var(--c)}
+.num-info{padding:10px 14px;background:var(--sf);border:1px solid var(--b);border-radius:9px;font-size:.82rem;line-height:1.6;min-height:52px;transition:all .3s}
+
+/* ERLANG CALCULATOR */
+.erlang-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.er-panel{background:var(--sf);border:1px solid var(--b);border-radius:12px;padding:16px}
+.er-title{font-family:'Orbitron',monospace;font-size:.78rem;color:var(--y);font-weight:700;margin-bottom:12px}
+.er-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;font-size:.82rem}
+.er-row label{color:var(--d);flex-shrink:0}
+.er-input{background:var(--s2);border:1px solid var(--b);border-radius:6px;color:var(--c);font-family:'Share Tech Mono',monospace;font-size:.85rem;padding:6px 12px;width:90px;text-align:right;outline:none}
+.er-input:focus{border-color:var(--c);box-shadow:0 0 8px rgba(0,229,255,.2)}
+.er-result{background:rgba(0,229,255,.06);border:1px solid var(--c);border-radius:8px;padding:12px;text-align:center;margin-top:10px}
+.er-num{font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:900;color:var(--c)}
+.er-label{font-size:.72rem;color:var(--d);font-family:'Share Tech Mono',monospace}
+.er-table{width:100%;border-collapse:collapse;font-family:'Share Tech Mono',monospace;font-size:.72rem}
+.er-table th{padding:6px 10px;background:var(--s2);color:var(--c);text-align:center;border-bottom:1px solid var(--b)}
+.er-table td{padding:5px 10px;text-align:center;border-bottom:1px solid rgba(255,255,255,.05);color:var(--d)}
+.er-table tr.hi td{color:var(--g);background:rgba(0,255,157,.06)}
+.er-table tr:hover td{background:rgba(255,255,255,.03)}
+.er-bar{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--g),var(--c));margin:2px 0;transition:width .5s ease}
+
+/* SS7 STACK */
+.ss7-stack{display:flex;gap:16px}
+.stack-col{flex:1;display:flex;flex-direction:column;gap:4px;align-items:center}
+.stack-layer{padding:9px 14px;border-radius:8px;text-align:center;cursor:pointer;transition:all .25s;width:100%;border:1px solid transparent}
+.stack-layer:hover{filter:brightness(1.3);transform:scale(1.03)}
+.sl-mtp1{background:rgba(255,61,90,.12);border-color:var(--r);color:var(--r)}
+.sl-mtp2{background:rgba(255,145,0,.12);border-color:var(--o);color:var(--o)}
+.sl-mtp3{background:rgba(255,214,0,.12);border-color:var(--y);color:var(--y)}
+.sl-sccp{background:rgba(199,125,255,.12);border-color:var(--p);color:var(--p)}
+.sl-tcap{background:rgba(0,229,255,.12);border-color:var(--c);color:var(--c)}
+.sl-map{background:rgba(0,255,157,.12);border-color:var(--g);color:var(--g)}
+.sl-title{font-family:'Orbitron',monospace;font-size:.7rem;font-weight:700}
+.sl-sub{font-size:.62rem;opacity:.7;margin-top:2px}
+.ss7-desc-box{padding:12px 16px;background:var(--s2);border:1px solid var(--b);border-radius:10px;font-size:.82rem;line-height:1.6;min-height:80px;transition:all .3s}
+
+/* ISDN */
+.isdn-box{background:var(--sf);border:1px solid var(--b);border-radius:12px;padding:16px;margin-bottom:12px;transition:all .3s}
+.isdn-box:hover{border-color:var(--c)}
+.isdn-title{font-family:'Orbitron',monospace;font-size:.82rem;font-weight:700;color:var(--c);margin-bottom:10px}
+.isdn-channels{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
+.ich{padding:7px 12px;border-radius:7px;font-family:'Share Tech Mono',monospace;font-size:.72rem;cursor:pointer;transition:all .2s;border:1px solid;font-weight:700}
+.ich.b{background:rgba(0,229,255,.12);border-color:var(--c);color:var(--c)}.ich.b:hover{background:rgba(0,229,255,.25);box-shadow:0 0 10px rgba(0,229,255,.3)}
+.ich.d{background:rgba(255,214,0,.12);border-color:var(--y);color:var(--y)}.ich.d:hover{background:rgba(255,214,0,.25)}
+.ich.active-ch{transform:scaleY(1.1);filter:brightness(1.5)}
+.isdn-info{font-size:.8rem;color:var(--d);line-height:1.55}
+
+/* MOS METER */
+.mos-meter{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.mos-bar-wrap{display:flex;align-items:center;gap:10px}
+.mos-bar-label{font-size:.78rem;min-width:110px;color:var(--t)}
+.mos-track{flex:1;height:10px;background:var(--s2);border-radius:5px;overflow:hidden;position:relative}
+.mos-fill{height:100%;border-radius:5px;transition:width .8s ease}
+.mos-val{font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--c);min-width:36px;text-align:right}
+.mos-dial{display:flex;flex-direction:column;align-items:center;gap:8px}
+#mos-canvas{display:block}
+.mos-quality{font-family:'Orbitron',monospace;font-size:1rem;font-weight:700}
+
+/* SOFTSWITCH */
+.softswitch-diagram{position:relative;height:260px;background:var(--sf);border:1px solid var(--b);border-radius:12px;overflow:hidden}
+.sw-node{position:absolute;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+.sw-box{padding:8px 14px;border-radius:8px;text-align:center;font-size:.72rem;font-weight:600;border:1px solid;transition:all .25s;min-width:80px;font-family:'Exo 2',sans-serif}
+.sw-box:hover{filter:brightness(1.3);transform:scale(1.06)}
+.sw-ico{font-size:1.4rem}
+.sw-lbl{font-size:.6rem;color:var(--d);font-family:'Share Tech Mono',monospace;text-align:center;max-width:80px}
+.sw-node-info{position:absolute;bottom:10px;left:10px;right:10px;padding:10px 14px;background:rgba(3,8,16,.9);border:1px solid var(--c);border-radius:9px;font-size:.78rem;line-height:1.55;pointer-events:none;transition:opacity .3s}
+
+/* FRAUD */
+.fraud-card{background:var(--sf);border:1px solid var(--r);border-radius:12px;padding:14px;margin-bottom:10px;position:relative;overflow:hidden;cursor:pointer;transition:all .3s}
+.fraud-card::before{content:'⚠';position:absolute;top:10px;right:14px;font-size:1.2rem;opacity:.3}
+.fraud-card:hover{border-color:var(--r);box-shadow:0 0 16px rgba(255,61,90,.2)}
+.fraud-title{font-family:'Orbitron',monospace;font-size:.78rem;color:var(--r);font-weight:700;margin-bottom:5px}
+.fraud-body{font-size:.82rem;line-height:1.55;color:var(--t);max-height:0;overflow:hidden;transition:max-height .4s ease}
+.fraud-card.open .fraud-body{max-height:200px}
+.fraud-sev{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:.62rem;font-family:'Orbitron',monospace;font-weight:700;margin-left:6px}
+.sev-high{background:rgba(255,61,90,.15);border:1px solid var(--r);color:var(--r)}
+.sev-med{background:rgba(255,145,0,.15);border:1px solid var(--o);color:var(--o)}
+.sev-low{background:rgba(255,214,0,.15);border:1px solid var(--y);color:var(--y)}
+
+/* QUIZ */
+.qcard{background:var(--sf);border:1px solid var(--b);border-radius:12px;padding:18px}
+.qtext{font-size:.92rem;font-weight:600;line-height:1.55;margin-bottom:14px;color:var(--t)}
+.qopts{display:flex;flex-direction:column;gap:9px}
+.qopt{padding:11px 16px;background:var(--s2);border:1px solid var(--b);border-radius:9px;cursor:pointer;font-size:.85rem;display:flex;align-items:center;gap:11px;transition:all .2s;color:var(--t)}
+.qopt:hover:not(.locked){border-color:var(--c);background:rgba(0,229,255,.07)}
+.qopt.correct{border-color:var(--g)!important;background:rgba(0,255,157,.1)!important;color:var(--g)!important}
+.qopt.wrong{border-color:var(--r)!important;background:rgba(255,61,90,.1)!important;color:var(--r)!important}
+.qltr{width:26px;height:26px;border-radius:50%;background:var(--s2);border:1px solid var(--d);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:.7rem;font-weight:700;flex-shrink:0}
+.qfb{padding:11px 15px;border-radius:9px;font-size:.82rem;margin-top:10px;display:none;line-height:1.6}
+.qfb.ok{display:block;background:rgba(0,255,157,.07);border:1px solid var(--g);color:var(--g)}
+.qfb.fail{display:block;background:rgba(255,61,90,.07);border:1px solid var(--r);color:var(--r)}
+.qnav{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.qsc{font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--d)}
+.qbtn{padding:8px 22px;border-radius:22px;cursor:pointer;font-family:'Orbitron',monospace;font-size:.7rem;font-weight:700;transition:all .3s;border:1px solid var(--c);background:rgba(0,229,255,.09);color:var(--c)}
+.qbtn:hover{background:rgba(0,229,255,.2);box-shadow:var(--glow)}
+
+/* FINAL */
+.fw{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;text-align:center}
+.sring{width:150px;height:150px;border-radius:50%;border:5px solid var(--c);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 60px rgba(0,229,255,.4),inset 0 0 40px rgba(0,229,255,.07);animation:rp 2.5s ease-in-out infinite}
+@keyframes rp{0%,100%{box-shadow:0 0 40px rgba(0,229,255,.3)}50%{box-shadow:0 0 80px rgba(0,229,255,.6)}}
+.sbig{font-family:'Orbitron',monospace;font-size:2.6rem;font-weight:900;color:var(--c)}
+.ssub{font-size:.7rem;color:var(--d);font-family:'Share Tech Mono',monospace}
+.smsg{font-size:1.05rem;font-weight:600;max-width:380px;line-height:1.5}
+.srs{padding:11px 30px;border-radius:28px;cursor:pointer;font-family:'Orbitron',monospace;font-size:.8rem;font-weight:700;transition:all .3s;border:1px solid var(--y);background:rgba(255,214,0,.1);color:var(--y)}
+.srs:hover{background:rgba(255,214,0,.22);box-shadow:0 0 24px rgba(255,214,0,.4)}
+
+/* NAV */
+#nav{position:fixed;bottom:0;left:0;right:0;z-index:200;height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 52px;background:linear-gradient(to top,rgba(3,8,16,.98) 70%,transparent);border-top:1px solid var(--b)}
+.nlbl{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--d);min-width:150px}
+.ndots{display:flex;gap:5px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--d);cursor:pointer;transition:all .3s}
+.dot.on{background:var(--c);box-shadow:0 0 8px var(--c);width:20px;border-radius:3px}
+.nbtns{display:flex;gap:9px;align-items:center;min-width:150px;justify-content:flex-end}
+.nb{padding:7px 20px;border-radius:20px;cursor:pointer;font-family:'Orbitron',monospace;font-size:.7rem;font-weight:700;transition:all .3s;border:1px solid}
+.nb.p{border-color:var(--d);color:var(--d);background:transparent}.nb.p:hover{border-color:var(--t);color:var(--t)}
+.nb.n{border-color:var(--c);color:var(--c);background:rgba(0,229,255,.08)}.nb.n:hover{background:rgba(0,229,255,.2);box-shadow:var(--glow)}
+.nb:disabled{opacity:.22;cursor:not-allowed;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div id="grid"></div>
+<div id="pb"><div id="pf"></div></div>
+
+<div id="deck">
+
+<!-- S0: PORTADA DÍA 2 -->
+<div class="slide active" id="s0">
+  <div class="ctag">DÍA 2 · SISTEMAS DE TELECOMUNICACIONES · EPN · 2025</div>
+  <div class="cico">📡</div>
+  <div class="ctit">PSTN — DÍA 2<br><span style="font-size:55%">Profundizando en la Red Telefónica</span></div>
+  <div class="csub">PCM · Conmutación · Numeración E.164 · Tráfico Erlang · SS7 avanzado · ISDN · Calidad MOS · NGN Softswitch · Seguridad</div>
+  <div class="cchips">
+    <div class="chip">01 · Repaso Día 1</div>
+    <div class="chip">02 · PCM Interactivo</div>
+    <div class="chip">03 · Cuantización</div>
+    <div class="chip">04 · Plan E.164</div>
+    <div class="chip">05 · Tráfico Erlang</div>
+    <div class="chip">06 · SS7 Capas</div>
+    <div class="chip">07 · ISDN</div>
+    <div class="chip">08 · Calidad MOS</div>
+    <div class="chip">09 · Softswitch NGN</div>
+    <div class="chip">10 · Seguridad PSTN</div>
+    <div class="chip">11 · Quiz Día 2</div>
+  </div>
+  <div class="hint">↔ flechas del teclado para navegar</div>
+</div>
+
+<!-- S1: REPASO DÍA 1 -->
+<div class="slide" id="s1">
+  <div class="sh"><div class="st">Repaso Rápido — Lo que vimos ayer</div><div class="sn">01 / 11</div></div>
+  <div class="sb">
+    <div class="intro">Antes de continuar: <strong>haz clic en cada tarjeta</strong> para recordar el concepto clave de cada tema del Día 1.</div>
+    <div class="recap-grid" id="recap-grid">
+      <div class="rc" onclick="rcShow(0)"><div class="rc-ico">☎️</div><div class="rc-lbl">PSTN</div><div class="rc-txt">¿Qué es?</div></div>
+      <div class="rc" onclick="rcShow(1)"><div class="rc-ico">🔌</div><div class="rc-lbl">Circuitos</div><div class="rc-txt">Conmutación</div></div>
+      <div class="rc" onclick="rcShow(2)"><div class="rc-ico">🏢</div><div class="rc-lbl">Jerarquía</div><div class="rc-txt">5 niveles</div></div>
+      <div class="rc" onclick="rcShow(3)"><div class="rc-ico">🎹</div><div class="rc-lbl">DTMF</div><div class="rc-txt">Señalización</div></div>
+      <div class="rc" onclick="rcShow(4)"><div class="rc-ico">⏱</div><div class="rc-lbl">E1 / TDM</div><div class="rc-txt">Transporte</div></div>
+    </div>
+    <div id="rc-detail" style="display:none;padding:14px 18px;background:var(--s2);border:1px solid var(--c);border-radius:12px;font-size:.84rem;line-height:1.7;margin-bottom:12px">
+      <strong id="rc-title" style="color:var(--c);display:block;margin-bottom:6px"></strong>
+      <span id="rc-text"></span>
+    </div>
+    <div class="div"><div class="ln"></div><span>PREGUNTAS DE INICIO</span><div class="ln"></div></div>
+    <div class="cg c3">
+      <div class="card" style="cursor:pointer" onclick="this.querySelector('.cd').style.display=this.querySelector('.cd').style.display==='block'?'none':'block'">
+        <div class="ct">❓ ¿Cuántos kbps usa un canal de voz?</div>
+        <div class="cd" style="display:none;color:var(--g)">✅ 64 kbps — 8 bits × 8000 muestras/s</div>
+      </div>
+      <div class="card yc" style="cursor:pointer" onclick="this.querySelector('.cd').style.display=this.querySelector('.cd').style.display==='block'?'none':'block'">
+        <div class="ct">❓ ¿Cuántos canales de voz tiene E1?</div>
+        <div class="cd" style="display:none;color:var(--g)">✅ 30 canales — TS-0 sync + TS-16 señalización</div>
+      </div>
+      <div class="card gc" style="cursor:pointer" onclick="this.querySelector('.cd').style.display=this.querySelector('.cd').style.display==='block'?'none':'block'">
+        <div class="ct">❓ ¿Qué significa ANM en SS7?</div>
+        <div class="cd" style="display:none;color:var(--g)">✅ Answer Message — el llamado contestó, inicia facturación</div>
+      </div>
+    </div>
+    <div class="formula" style="margin-top:10px">
+      HOY veremos: PCM a fondo · Erlang · E.164 · SS7 stack · ISDN · MOS · Softswitch · Seguridad
+    </div>
+  </div>
+</div>
+
+<!-- S2: PCM INTERACTIVO -->
+<div class="slide" id="s2">
+  <div class="sh"><div class="st">PCM: De Voz Analógica a Bits</div><div class="sn">02 / 11</div></div>
+  <div class="sb">
+    <div class="analogy">
+      <div class="ana-ico">📸</div>
+      <div>
+        <div class="ana-tit">ANALOGÍA: FOTOGRAFÍA DE UNA SEÑAL</div>
+        <div class="ana-txt">PCM es como <strong>fotografiar</strong> una señal de voz 8000 veces por segundo. Cada foto mide la altura exacta de la onda y la convierte en un número (8 bits). Reproduces la voz "recreando" esas fotos en orden.</div>
+      </div>
+    </div>
+    <div class="cg c3" style="margin-bottom:12px">
+      <div class="card"><div class="ct">① MUESTREO</div><div class="cd">Se toman <span class="hl">8 000 muestras/seg</span> de la señal analógica (Nyquist: fs ≥ 2×fbw). Cada muestra es un "snapshot" de la amplitud instantánea.</div></div>
+      <div class="card yc"><div class="ct">② CUANTIZACIÓN</div><div class="cd">La amplitud continua se convierte a un valor discreto de <span class="ho">256 niveles</span> (8 bits). Introduce un pequeño error llamado <strong>ruido de cuantización</strong>.</div></div>
+      <div class="card gc"><div class="ct">③ CODIFICACIÓN</div><div class="cd">Cada nivel se convierte a <span class="hg">8 bits binarios</span>. La secuencia de bits se transmite por el canal. El receptor la invierte para reproducir el audio.</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 220px;gap:14px">
+      <div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--d);margin-bottom:5px">
+          DEMO PCM — ajusta frecuencia y bits de cuantización:
+        </div>
+        <canvas id="pcm-canvas"></canvas>
+        <div class="pcm-ctrl">
+          <div class="sl-row">🎵 Freq: <span id="pcm-freq-lbl">440 Hz</span> <input type="range" min="100" max="2000" value="440" id="pcm-freq" oninput="updatePCM()"></div>
+          <div class="sl-row">🔢 Bits: <span id="pcm-bits-lbl">8 bits</span> <input type="range" min="2" max="8" value="8" id="pcm-bits" oninput="updatePCM()"></div>
+          <button class="pcm-btn" onclick="togglePCMMode('wave')">SEÑAL</button>
+          <button class="pcm-btn y" onclick="togglePCMMode('samples')">MUESTRAS</button>
+          <button class="pcm-btn g" onclick="togglePCMMode('bits')">BITS</button>
+        </div>
+        <div class="pcm-info" id="pcm-info">
+          Frecuencia: 440 Hz &nbsp;|&nbsp; Bits: 8 &nbsp;|&nbsp; Niveles: 256 &nbsp;|&nbsp; SNR ≈ 49.9 dB &nbsp;|&nbsp; Tasa: 64 000 bps
+        </div>
+      </div>
+      <div>
+        <div class="card" style="height:100%">
+          <div class="ct">📐 FÓRMULA SNR-PCM</div>
+          <div class="cd" style="font-family:'Share Tech Mono',monospace;font-size:.82rem;line-height:2">
+            SNR = 6.02 × n + 1.76 dB<br>
+            <span style="color:var(--d);font-size:.72rem">n = número de bits</span><br>
+            <span style="color:var(--g)">8 bits → 49.9 dB ✅</span><br>
+            <span style="color:var(--y)">4 bits → 25.8 dB ⚠️</span><br>
+            <span style="color:var(--r)">2 bits → 14.0 dB ❌</span><br>
+            <div class="div" style="margin:6px 0"><div class="ln"></div></div>
+            <span style="color:var(--d);font-size:.7rem">G.711: 8 bits, A-law (EU)<br>o μ-law (EEUU/Japón)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S3: CUANTIZACIÓN A-LAW -->
+<div class="slide" id="s3">
+  <div class="sh"><div class="st">Cuantización: A-law y μ-law</div><div class="sn">03 / 11</div></div>
+  <div class="sb">
+    <div class="intro">El problema de la cuantización uniforme es que los sonidos débiles (susurros) tienen más ruido relativo que los sonidos fuertes. La solución: <span class="hl">cuantización no uniforme</span> — más precisión para señales débiles.</div>
+    <div class="analogy">
+      <div class="ana-ico">🔍</div>
+      <div>
+        <div class="ana-tit">ANALOGÍA: ZOOM AUTOMÁTICO</div>
+        <div class="ana-txt">Imagina una cámara que cuando detectas algo pequeño hace <strong>zoom automático</strong> para capturarlo mejor. A-law hace lo mismo con señales débiles: les da más niveles de cuantización, reduciendo el ruido perceptible.</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px">
+      <div>
+        <canvas id="qcanvas"></canvas>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <button class="pcm-btn" onclick="drawQuant('uniform')">UNIFORME</button>
+          <button class="pcm-btn y" onclick="drawQuant('alaw')">A-LAW</button>
+          <button class="pcm-btn g" onclick="drawQuant('compare')">COMPARAR</button>
+        </div>
+      </div>
+      <div class="cg" style="gap:10px">
+        <div class="card yc">
+          <div class="ct">A-LAW (G.711 Europa/Ecuador)</div>
+          <div class="cd">Usado en <span class="hl">E1</span>. Comprime la señal con ley logarítmica A=87.6. Ofrece SNR mínima de <span class="ho">38 dB</span> en todo el rango dinámico. Es el estándar en la PSTN de Ecuador (CNT).</div>
+        </div>
+        <div class="card pc">
+          <div class="ct">μ-LAW (G.711 EEUU / Japón)</div>
+          <div class="cd">Usado en <span class="hl">T1</span> (norteamérica). Parámetro μ=255. Ligeramente mejor SNR en señales muy débiles. Incompatible con A-law — las puertas internacionales hacen conversión.</div>
+        </div>
+        <div class="card gc">
+          <div class="ct">VENTAJA PRÁCTICA</div>
+          <div class="cd">Con 8 bits de cuantización <span class="hg">no uniforme</span> se obtiene una calidad equivalente a <strong>13 bits</strong> de cuantización uniforme. Ahorro de ancho de banda.</div>
+        </div>
+      </div>
+    </div>
+    <div class="formula">A-law: F(x) = A|x| / (1+ln A) &nbsp; si |x|≤1/A &nbsp;&nbsp;|&nbsp;&nbsp; F(x) = (1+ln(A|x|)) / (1+ln A) &nbsp; si 1/A < |x| ≤ 1</div>
+  </div>
+</div>
+
+<!-- S4: PLAN DE NUMERACIÓN E.164 -->
+<div class="slide" id="s4">
+  <div class="sh"><div class="st">Plan de Numeración E.164 — Ecuador</div><div class="sn">04 / 11</div></div>
+  <div class="sb">
+    <div class="intro"><span class="hl">E.164</span> es el estándar ITU-T que define la estructura de los números telefónicos del mundo. Máximo <strong>15 dígitos</strong>. Incluye: código de país + código de área + número de abonado.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div>
+        <div class="num-display" id="num-display">_</div>
+        <div class="num-breakdown" id="num-breakdown"></div>
+        <div class="num-pad">
+          <button class="nkey" onclick="nPress('1')">1</button>
+          <button class="nkey" onclick="nPress('2')">2</button>
+          <button class="nkey" onclick="nPress('3')">3</button>
+          <button class="nkey" onclick="nPress('4')">4</button>
+          <button class="nkey" onclick="nPress('5')">5</button>
+          <button class="nkey" onclick="nPress('6')">6</button>
+          <button class="nkey" onclick="nPress('7')">7</button>
+          <button class="nkey" onclick="nPress('8')">8</button>
+          <button class="nkey" onclick="nPress('9')">9</button>
+          <button class="nkey" onclick="nPress('+')">+</button>
+          <button class="nkey" onclick="nPress('0')">0</button>
+          <button class="nkey" onclick="nClear()" style="color:var(--r);border-color:var(--r)">⌫</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+          <button class="pcm-btn" onclick="nDemo('02')">Demo Quito</button>
+          <button class="pcm-btn y" onclick="nDemo('04')">Demo GYE</button>
+          <button class="pcm-btn g" onclick="nDemo('+593')">Intl. Ecuador</button>
+          <button class="pcm-btn" onclick="nDemo('1800')" style="border-color:var(--p);color:var(--p)">1-800</button>
+        </div>
+      </div>
+      <div>
+        <div class="num-info" id="num-info"><span style="color:var(--d)">← Marca un número para decodificarlo</span></div>
+        <div class="div" style="margin:10px 0"><div class="ln"></div><span>PLAN ECUADOR (ARCOTEL)</span><div class="ln"></div></div>
+        <div class="steps">
+          <div class="step"><div class="snum">+593</div><div>Código de país Ecuador. Para llamar desde el exterior: +593 (2) XXX-XXXX (Quito).</div></div>
+          <div class="step y"><div class="snum y">02</div><div>Quito (Pichincha). Prefijo de área geográfico. Formato completo: 02-XXX-XXXX (7 dígitos locales).</div></div>
+          <div class="step y"><div class="snum y">04</div><div>Guayaquil (Guayas). Mayor central de conmutación del país. 04-XXX-XXXX.</div></div>
+          <div class="step g"><div class="snum g">09X</div><div>Telefonía móvil: 099 (Movistar), 098/096 (Claro CNT), 097 (Tuenti). 10 dígitos.</div></div>
+          <div class="step p"><div class="snum p">1800</div><div>Líneas gratuitas 1-800-XXX-XXX (cobro revertido automático al receptor). Código especial.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S5: TRÁFICO ERLANG -->
+<div class="slide" id="s5">
+  <div class="sh"><div class="st">Tráfico Telefónico: Los Erlangs</div><div class="sn">05 / 11</div></div>
+  <div class="sb">
+    <div class="analogy">
+      <div class="ana-ico">🚗</div>
+      <div>
+        <div class="ana-tit">ANALOGÍA: PEAJE DE AUTOPISTA</div>
+        <div class="ana-txt">Si en una hora pasan 60 autos y cada uno tarda 2 minutos en cruzar el peaje, el tráfico es 60×2/60 = <strong>2 Erlangs</strong>. Si el peaje tiene 3 cabinas (trunks) puede manejarlo. Si tiene 2, algunos autos esperan o pierden la llamada.</div>
+      </div>
+    </div>
+    <div class="erlang-wrap">
+      <div class="er-panel">
+        <div class="er-title">🧮 CALCULADORA ERLANG B</div>
+        <div class="er-row"><label>Llamadas por hora (λ):</label><input class="er-input" type="number" id="er-calls" value="120" min="1" max="9999" oninput="calcErlang()"></div>
+        <div class="er-row"><label>Duración media (min):</label><input class="er-input" type="number" id="er-dur" value="3" min="0.1" max="60" step="0.1" oninput="calcErlang()"></div>
+        <div class="er-row"><label>Canales disponibles (N):</label><input class="er-input" type="number" id="er-ch" value="10" min="1" max="200" oninput="calcErlang()"></div>
+        <div class="er-result">
+          <div class="er-num" id="er-traffic">6.00</div>
+          <div class="er-label">Tráfico A (Erlangs)</div>
+        </div>
+        <div class="er-result" style="margin-top:8px;border-color:var(--r)">
+          <div class="er-num" id="er-gos" style="color:var(--r)">1.5%</div>
+          <div class="er-label">GoS — Prob. de bloqueo (Erlang B)</div>
+        </div>
+        <div style="font-size:.75rem;color:var(--d);margin-top:8px;font-family:'Share Tech Mono',monospace;line-height:1.5">
+          A = λ × h &nbsp;|&nbsp; λ=llamadas/s &nbsp;|&nbsp; h=duración (s)<br>
+          <span style="color:var(--g)">GoS objetivo: ≤ 1% (telefonía pública)</span>
+        </div>
+      </div>
+      <div class="er-panel">
+        <div class="er-title">📊 TABLA ERLANG B REFERENCIA</div>
+        <table class="er-table" id="er-table">
+          <thead><tr><th>Tráfico (E)</th><th>N=5</th><th>N=10</th><th>N=20</th><th>N=30</th></tr></thead>
+          <tbody>
+            <tr><td>2</td><td>3.7%</td><td>0.01%</td><td>—</td><td>—</td></tr>
+            <tr><td>5</td><td>38.6%</td><td>1.8%</td><td>0.0%</td><td>—</td></tr>
+            <tr><td>10</td><td>81.0%</td><td>18.3%</td><td>0.03%</td><td>—</td></tr>
+            <tr><td>15</td><td>93.7%</td><td>44.4%</td><td>0.5%</td><td>0.0%</td></tr>
+            <tr><td>20</td><td>97.8%</td><td>66.7%</td><td>3.5%</td><td>0.01%</td></tr>
+          </tbody>
+        </table>
+        <div class="div" style="margin:10px 0"><div class="ln"></div><span>CARGA ACTUAL</span><div class="ln"></div></div>
+        <div style="font-size:.78rem;margin-bottom:6px;color:var(--d)">Utilización de canales:</div>
+        <div style="background:var(--s2);border-radius:8px;height:16px;overflow:hidden"><div id="util-bar" class="er-bar" style="width:60%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--d);margin-top:4px;font-family:'Share Tech Mono',monospace">
+          <span>0%</span><span id="util-pct" style="color:var(--c)">60.0%</span><span>100%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S6: SS7 EN PROFUNDIDAD -->
+<div class="slide" id="s6">
+  <div class="sh"><div class="st">SS7 en Profundidad: Capas y Arquitectura</div><div class="sn">06 / 11</div></div>
+  <div class="sb">
+    <div class="intro">SS7 (Signaling System No. 7) es una <strong>pila de protocolos</strong> de 4 capas. No es solo un protocolo, es un sistema completo análogo al modelo OSI para señalización telefónica.</div>
+    <div class="ss7-stack">
+      <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+        <div style="font-family:'Orbitron',monospace;font-size:.72rem;color:var(--d);margin-bottom:4px;text-align:center">PILA SS7</div>
+        <div class="stack-layer sl-map" onclick="ss7layer(0)"><div class="sl-title">MAP / CAP / INAP</div><div class="sl-sub">Aplicaciones GSM/IN</div></div>
+        <div class="stack-layer sl-tcap" onclick="ss7layer(1)"><div class="sl-title">TCAP</div><div class="sl-sub">Transaction Capabilities</div></div>
+        <div class="stack-layer sl-sccp" onclick="ss7layer(2)"><div class="sl-title">SCCP</div><div class="sl-sub">Conexion y direccionamiento</div></div>
+        <div class="stack-layer sl-mtp3" onclick="ss7layer(3)"><div class="sl-title">MTP-3</div><div class="sl-sub">Red SS7</div></div>
+        <div class="stack-layer sl-mtp2" onclick="ss7layer(4)"><div class="sl-title">MTP-2</div><div class="sl-sub">Enlace de señalizacion</div></div>
+        <div class="stack-layer sl-mtp1" onclick="ss7layer(5)"><div class="sl-title">MTP-1</div><div class="sl-sub">Canal fisico E1</div></div>
+      </div>
+      <div style="flex:1.8;display:flex;flex-direction:column;gap:10px">
+        <div class="ss7-desc-box" id="ss7-desc-box">
+          <strong style="color:var(--c);display:block;margin-bottom:6px">← Haz clic en una capa para ver sus detalles</strong>
+          SS7 se compone de dos tipos de nodos:<br>
+          <span class="hl">SSP (Service Switching Point)</span>: centrales que generan señalización.<br>
+          <span style="color:var(--p)">STP (Signal Transfer Point)</span>: routers de señalización SS7.<br>
+          <span class="hg">SCP (Service Control Point)</span>: bases de datos de servicios.
+        </div>
+        <div class="cg c2">
+          <div class="card"><div class="ct">🔀 STP</div><div class="cd" style="font-size:.78rem">Signal Transfer Point: el "router" de la red SS7. No maneja llamadas de voz, solo mensajes de señalización. Siempre en pares por redundancia.</div></div>
+          <div class="card gc"><div class="ct">🗄️ SCP</div><div class="cd" style="font-size:.78rem">Service Control Point: base de datos de alta velocidad. Responde consultas en <strong>&lt;100 ms</strong>. Almacena: portabilidad numérica, prepago, VPN corporativas, 1-800.</div></div>
+          <div class="card yc"><div class="ct">🆘 PROBLEMA SS7</div><div class="cd" style="font-size:.78rem">SS7 fue diseñado en los 70s sin criptografía. Hoy se puede interceptar llamadas y SMS con acceso a la red. <span style="color:var(--r)">Vulnerabilidad activa en 2025.</span></div></div>
+          <div class="card pc"><div class="ct">📱 SS7 → DIAMETER</div><div class="cd" style="font-size:.78rem">Las redes 4G/5G usan <span class="hp">DIAMETER</span> (RFC 6733) y luego <span class="hp">HTTP/2 + SBI</span> en 5G core para reemplazar SS7.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S7: ISDN -->
+<div class="slide" id="s7">
+  <div class="sh"><div class="st">ISDN — Red Digital de Servicios Integrados</div><div class="sn">07 / 11</div></div>
+  <div class="sb">
+    <div class="intro"><span class="hl">ISDN</span> (Integrated Services Digital Network) fue el primer intento de llevar digital hasta el abonado. Lanzado en los 80s como el "futuro" de la telefonía. Hoy reemplazado por ADSL, FTTH y VoIP, pero su arquitectura aún se usa en PBX corporativas.</div>
+    <div class="analogy" style="margin-bottom:12px">
+      <div class="ana-ico">🚌</div>
+      <div>
+        <div class="ana-tit">ANALOGÍA: CARRETERA COMPARTIDA</div>
+        <div class="ana-txt">ISDN divide un solo par de cobre en <strong>canales separados</strong> usando multiplexación: canales B para datos/voz (carga) y un canal D para señalización (semáforos/control). Como una autopista con carril especial para vehículos de emergencia.</div>
+      </div>
+    </div>
+    <div class="cg c2" style="margin-bottom:14px">
+      <div class="isdn-box" onclick="showIsdn('bri')">
+        <div class="isdn-title">BRI — Basic Rate Interface (Acceso Básico)</div>
+        <div class="isdn-channels" id="bri-ch"></div>
+        <div class="isdn-info" id="bri-info">Haz clic para ver detalles. Haz clic en un canal.</div>
+      </div>
+      <div class="isdn-box" onclick="showIsdn('pri')">
+        <div class="isdn-title">PRI — Primary Rate Interface (Acceso Primario)</div>
+        <div class="isdn-channels" id="pri-ch"></div>
+        <div class="isdn-info" id="pri-info">Haz clic para ver detalles. Equivale a un E1 completo.</div>
+      </div>
+    </div>
+    <div class="cg c3">
+      <div class="card"><div class="ct">📞 USOS DE BRI</div><div class="cd">Hogares y pequeñas empresas. Permite 2 llamadas simultáneas + navegación. Video-conferencia H.320. Actualmente casi extinto en Ecuador.</div></div>
+      <div class="card yc"><div class="ct">🏢 USOS DE PRI</div><div class="cd">PBX corporativas medianas/grandes. Un PRI = 30 llamadas simultáneas. Aún muy usado en call centers, aeropuertos, hoteles en Ecuador.</div></div>
+      <div class="card gc"><div class="ct">📡 LEGADO ACTIVO</div><div class="cd">Muchas centrales ISDN PRI están siendo migradas a <span class="hg">SIP Trunking</span> (el equivalente VoIP). Mismo concepto, diferente tecnología.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- S8: CALIDAD DE VOZ / MOS -->
+<div class="slide" id="s8">
+  <div class="sh"><div class="st">Calidad de Voz: MOS y Factores de Degradación</div><div class="sn">08 / 11</div></div>
+  <div class="sb">
+    <div class="intro">¿Cómo medimos si una llamada "suena bien"? El estándar internacional es el <span class="hl">MOS (Mean Opinion Score)</span> definido por ITU-T P.800. Es una escala del 1 al 5 basada en evaluación humana o algoritmos.</div>
+    <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:16px;margin-bottom:12px">
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:.75rem;color:var(--y);font-weight:700;margin-bottom:10px">ESCALA MOS (1-5)</div>
+        <div class="mos-meter" id="mos-meter"></div>
+        <div class="div"><div class="ln"></div><span>FACTORES QUE AFECTAN EL MOS</span><div class="ln"></div></div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <div class="step r"><div class="snum r">⚡</div><div><strong style="color:var(--r)">Eco:</strong> Reflejo de la señal. Se filtra con canceladores de eco (G.165/G.168). Tolerable hasta 25 ms.</div></div>
+          <div class="step y"><div class="snum y">⏱</div><div><strong style="color:var(--y)">Latencia:</strong> Retardo total. &lt;150 ms ideal. &gt;400 ms inaceptable. Satélites GEO: ~600 ms → muy perceptible.</div></div>
+          <div class="step p"><div class="snum p">〰</div><div><strong style="color:var(--p)">Jitter (VoIP):</strong> Variación del retardo. Destruye la secuencia de paquetes. Se combate con <em>jitter buffer</em>.</div></div>
+          <div class="step g"><div class="snum g">📦</div><div><strong style="color:var(--g)">Pérdida paquetes (VoIP):</strong> &lt;1% aceptable. &gt;5% → calidad terrible. PLC (Packet Loss Concealment) lo mitiga.</div></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:.75rem;color:var(--y);font-weight:700;margin-bottom:10px">CODECS: CALIDAD vs ANCHO DE BANDA</div>
+        <div id="codec-list" style="display:flex;flex-direction:column;gap:8px"></div>
+        <div class="div"><div class="ln"></div><span>MODELO E DE CALIDAD (ITU-T G.107)</span><div class="ln"></div></div>
+        <div class="card gc" style="margin-top:4px">
+          <div class="cd" style="font-size:.8rem;line-height:1.7">El <span class="hg">R-factor</span> (0-100) combina todos los factores en una sola métrica. MOS ≈ 1 + 0.035R + R(R-60)(100-R)·7×10⁻⁶. Usado en herramientas como <strong>IETF RFC 3611 (RTCP-XR)</strong> para monitoreo VoIP.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S9: NGN / SOFTSWITCH -->
+<div class="slide" id="s9">
+  <div class="sh"><div class="st">NGN y el Softswitch: La Central del Futuro</div><div class="sn">09 / 11</div></div>
+  <div class="sb">
+    <div class="intro">En NGN la central tradicional (hardware propietario) se divide en <strong>3 capas funcionales</strong> separadas. Esto permite usar hardware estándar de servidor y protocolos abiertos como SIP.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px">
+      <div>
+        <div class="softswitch-diagram" id="sw-diagram">
+          <!-- nodos posicionados por JS -->
+          <div id="sw-info" class="sw-node-info" style="opacity:0">← Clic en un componente</div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+          <button class="pcm-btn" onclick="swHighlight('pstn')">PSTN Legacy</button>
+          <button class="pcm-btn g" onclick="swHighlight('voip')">VoIP Usuario</button>
+          <button class="pcm-btn y" onclick="swHighlight('all')">Ver Todo</button>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:.75rem;color:var(--y);font-weight:700;margin-bottom:10px">LAS 3 CAPAS DE LA NGN</div>
+        <div class="steps">
+          <div class="step"><div class="snum">🖧</div><div><strong>Capa de Transporte:</strong> Media Gateway (MGW) — Convierte TDM a paquetes RTP/IP. Maneja el audio real. Controlado remotamente por el Softswitch vía H.248/Megaco.</div></div>
+          <div class="step y"><div class="snum" style="color:var(--y)">🧠</div><div><strong>Capa de Control:</strong> Softswitch / MGC — "El cerebro". Procesa la señalización SIP/SS7, decide el enrutamiento, controla el MGW. Corre en servidores Linux estándar (ej: Asterisk, FreeSWITCH, Kamailio).</div></div>
+          <div class="step g"><div class="snum" style="color:var(--g)">🌐</div><div><strong>Capa de Servicios:</strong> Application Server — Lógica de servicios: buzón de voz, conferencia, grabación, IVR. Comunica con el Softswitch vía SIP.</div></div>
+        </div>
+        <div class="div"><div class="ln"></div><span>VENTAJAS CLAVE</span><div class="ln"></div></div>
+        <div class="cg c2" style="gap:8px">
+          <div class="card" style="padding:10px"><div class="cd" style="font-size:.78rem">💰 <span class="hl">CAPEX -80%</span><br>Servidores x86 vs hardware propietario</div></div>
+          <div class="card gc" style="padding:10px"><div class="cd" style="font-size:.78rem">📈 <span class="hg">Escalabilidad</span><br>Agregar VMs en minutos</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S10: SEGURIDAD PSTN -->
+<div class="slide" id="s10">
+  <div class="sh"><div class="st">Seguridad y Fraudes en la PSTN</div><div class="sn">10 / 11</div></div>
+  <div class="sb">
+    <div class="intro">La PSTN fue diseñada asumiendo confianza entre operadores. Esto creó <strong>vulnerabilidades históricas</strong> que aún existen. Entender los fraudes es clave para el ingeniero de telecomunicaciones.</div>
+    <div class="cg c2" style="margin-bottom:12px">
+      <div>
+        <div class="fraud-card" onclick="this.classList.toggle('open')">
+          <div class="fraud-title">📟 Phreaking — "Blue Box" (1960-80s) <span class="fraud-sev sev-low">HISTÓRICO</span></div>
+          <div class="fraud-body">John Draper ("Cap'n Crunch") descubrió que un silbato de cereal Cap'n Crunch generaba exactamente 2600 Hz — el tono que AT&T usaba para indicar "línea libre". Reproduciendo este tono se podían hacer llamadas gratis. Steve Jobs y Steve Wozniak fabricaron "blue boxes" y las vendieron en UC Berkeley. Llevó al diseño de SS7 fuera de banda.</div>
+        </div>
+        <div class="fraud-card" onclick="this.classList.toggle('open')">
+          <div class="fraud-title">🕵️ SS7 Attack — Escucha de llamadas <span class="fraud-sev sev-high">ACTIVO HOY</span></div>
+          <div class="fraud-body">SS7 no tiene autenticación entre operadores. Con acceso a un nodo SS7 (posible en algunos países) se puede: interceptar llamadas, redirigir SMS de 2FA bancario, rastrear la ubicación de cualquier número. Karsten Nohl lo demostró en 2014 en el Chaos Computer Congress. En 2025 sigue siendo un vector de ataque real contra periodistas y políticos.</div>
+        </div>
+        <div class="fraud-card" onclick="this.classList.toggle('open')">
+          <div class="fraud-title">💸 IRSF — International Revenue Share Fraud <span class="fraud-sev sev-high">USD 3.2B/año</span></div>
+          <div class="fraud-body">El fraude más rentable del mundo en telecomunicaciones. Un atacante compromete una PBX o sistema VoIP y genera miles de llamadas a números premium internacionales que él mismo controla. La empresa víctima recibe una factura enorme. El atacante recibe el "revenue share". Ecuador: múltiples empresas han perdido USD 20-100K en un fin de semana.</div>
+        </div>
+      </div>
+      <div>
+        <div class="fraud-card" onclick="this.classList.toggle('open')">
+          <div class="fraud-title">📞 CLI Spoofing — Falsificación de Caller ID <span class="fraud-sev sev-high">ACTIVO HOY</span></div>
+          <div class="fraud-body">La PSTN originalmente confiaba ciegamente en el Calling Line Identification (CLI). Hoy con VoIP es trivial enviar cualquier número como origen. Usado para fraudes bancarios (vishing), donde el atacante aparece como el número del banco. STIR/SHAKEN (RFC 8226) es el estándar para firmar digitalmente el CLI, adoptado en EEUU desde 2021.</div>
+        </div>
+        <div class="fraud-card" onclick="this.classList.toggle('open')">
+          <div class="fraud-title">🤖 Robocalling y Spam de Voz <span class="fraud-sev sev-med">MOLESTO</span></div>
+          <div class="fraud-body">Sistemas automatizados hacen millones de llamadas con mensajes pregrabados (scams de IRS, extensiones de garantía, etc.). En EEUU se bloquean ~4B robocalls por mes. En Ecuador el problema crece con la proliferación de VoIP barato. ARCOTEL tiene normativas pero el cumplimiento es difícil.</div>
+        </div>
+        <div class="card" style="margin-top:10px">
+          <div class="ct">🛡️ DEFENSAS</div>
+          <div class="cd" style="font-size:.8rem;line-height:1.65">
+            <span class="hg">✔ SBC (Session Border Controller)</span>: firewall de VoIP<br>
+            <span class="hl">✔ STIR/SHAKEN</span>: autenticación de CLI<br>
+            <span style="color:var(--y)">✔ Diameter + IPsec</span>: asegura señalización 4G/5G<br>
+            <span style="color:var(--p)">✔ Monitoreo de tráfico</span>: detección de anomalías<br>
+            <span style="color:var(--o)">✔ Límites de llamadas</span>: rate limiting en PBX
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S11: QUIZ DÍA 2 -->
+<div class="slide" id="s11">
+  <div class="sh"><div class="st">🎯 Quiz — Día 2</div><div class="sn">11 / 11</div></div>
+  <div class="sb" id="quiz-body"></div>
+</div>
+
+</div><!-- /deck -->
+
+<div id="nav">
+  <div class="nlbl" id="nlbl">PSTN Día 2 · EPN · 2025</div>
+  <div class="ndots" id="ndots"></div>
+  <div class="nbtns">
+    <button class="nb p" id="btnp" onclick="go(-1)">← PREV</button>
+    <button class="nb n" id="btnn" onclick="go(1)">NEXT →</button>
+  </div>
+</div>
+
+<script>
+// STARS
+(()=>{const b=document.getElementById('bg');for(let i=0;i<100;i++){const s=document.createElement('div');s.className='star';const z=Math.random()*2+.5;s.style.cssText=`width:${z}px;height:${z}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-duration:${2+Math.random()*4}s;animation-delay:${Math.random()*5}s;opacity:${Math.random()*.4}`;b.appendChild(s)}})();
+
+// SLIDE ENGINE
+let cur=0;const TOTAL=12;
+const TITLES=['PSTN Día 2','Repaso Día 1','PCM Interactivo','Cuantización A-law','Plan E.164 Ecuador','Tráfico Erlang','SS7 Avanzado','ISDN BRI/PRI','Calidad MOS','NGN Softswitch','Seguridad PSTN','Quiz Día 2'];
+function go(d){
+  const ss=document.querySelectorAll('.slide'),p=cur;
+  cur=Math.max(0,Math.min(TOTAL-1,cur+d));if(p===cur)return;
+  ss[p].classList.add('exit');setTimeout(()=>ss[p].classList.remove('active','exit'),380);
+  ss[cur].classList.add('active');tick();
+  if(cur===4)setTimeout(initNum,100);
+  if(cur===5)calcErlang();
+  if(cur===7)buildIsdn();
+  if(cur===8)buildMOS();
+  if(cur===9)buildSoftswitch();
+  if(cur===11)startQuiz();
+}
+function goto(i){const ss=document.querySelectorAll('.slide');ss[cur].classList.remove('active');cur=i;ss[cur].classList.add('active');tick();if(cur===4)setTimeout(initNum,100);if(cur===5)calcErlang();if(cur===7)buildIsdn();if(cur===8)buildMOS();if(cur===9)buildSoftswitch();if(cur===11)startQuiz();}
+function tick(){
+  document.getElementById('pf').style.width=(cur/(TOTAL-1)*100)+'%';
+  document.getElementById('btnp').disabled=cur===0;document.getElementById('btnn').disabled=cur===TOTAL-1;
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i===cur));
+  document.getElementById('nlbl').textContent=TITLES[cur];
+}
+(()=>{const c=document.getElementById('ndots');for(let i=0;i<TOTAL;i++){const d=document.createElement('div');d.className='dot'+(i===0?' on':'');d.onclick=()=>goto(i);c.appendChild(d)}})();
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')go(1);if(e.key==='ArrowLeft'||e.key==='ArrowUp')go(-1)});
+
+// RECAP
+const rcData=[
+  {t:'PSTN — Red Telefónica Pública',tx:'La PSTN es la red mundial de telefonía. Usa conmutación de circuitos: reserva un camino dedicado de 64 kbps para cada llamada. El último kilómetro es par de cobre. La red de transporte es digital (PCM G.711).'},
+  {t:'Conmutación de Circuitos',tx:'Un circuito dedicado se reserva de extremo a extremo ANTES de hablar. Permanece ocupado aunque haya silencio. Contrario a la conmutación de paquetes (IP) que solo usa el canal cuando hay datos.'},
+  {t:'Jerarquía de 5 Niveles',tx:'Internacional → Toll LD → Tándem/Primaria → Central Local (CO) → Terminal del usuario. Las llamadas "suben" hasta el nodo común más cercano y "bajan" al destino.'},
+  {t:'DTMF — Dual Tone Multi-Frequency',tx:'Cada tecla genera 2 tonos simultáneos: uno de fila (697/770/852/941 Hz) y uno de columna (1209/1336/1477 Hz). La central decodifica la combinación como el dígito marcado.'},
+  {t:'E1 — TDM 2.048 Mbps',tx:'El estándar europeo E1 divide un enlace en 32 slots de tiempo (time slots) de 8 bits cada uno. TS-0: sincronización. TS-16: señalización. Los otros 30 TS: canales de voz de 64 kbps. Trama de 125 µs = 8000 tramas/s.'}
+];
+function rcShow(i){
+  document.getElementById('rc-title').textContent=rcData[i].t;
+  document.getElementById('rc-text').textContent=rcData[i].tx;
+  document.getElementById('rc-detail').style.display='block';
+}
+
+// PCM DEMO
+let pcmMode='wave';
+function togglePCMMode(m){pcmMode=m;updatePCM()}
+function updatePCM(){
+  const f=+document.getElementById('pcm-freq').value;
+  const bits=+document.getElementById('pcm-bits').value;
+  document.getElementById('pcm-freq-lbl').textContent=f+' Hz';
+  document.getElementById('pcm-bits-lbl').textContent=bits+' bits';
+  const levels=Math.pow(2,bits);
+  const snr=(6.02*bits+1.76).toFixed(1);
+  document.getElementById('pcm-info').textContent=`Frecuencia: ${f} Hz | Bits: ${bits} | Niveles: ${levels} | SNR ≈ ${snr} dB | Tasa: ${f<=4000?64000:128000} bps`;
+  drawPCM(f,bits);
+}
+function drawPCM(freq,bits){
+  const cv=document.getElementById('pcm-canvas');if(!cv)return;
+  const W=cv.offsetWidth||600,H=180;cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d');ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+  // grid
+  ctx.strokeStyle='rgba(0,229,255,.08)';ctx.lineWidth=1;
+  for(let y=0;y<H;y+=H/8){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+  for(let x=0;x<W;x+=W/20){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+  const levels=Math.pow(2,bits);
+  // original wave
+  if(pcmMode==='wave'||pcmMode==='samples'||pcmMode==='bits'){
+    ctx.beginPath();ctx.strokeStyle='rgba(0,229,255,.4)';ctx.lineWidth=1.5;
+    for(let x=0;x<W;x++){const t=x/W*0.003;const y=H/2-(H*.4)*Math.sin(2*Math.PI*freq*t);if(x===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)}
+    ctx.stroke();
+  }
+  // quantized
+  if(pcmMode==='samples'||pcmMode==='bits'){
+    const step=H/levels;const samples=Math.min(32,Math.floor(freq*0.003*W/10)+4);
+    for(let i=0;i<samples;i++){
+      const x=i/samples*W;const t=x/W*0.003;
+      const raw=(H/2-(H*.4)*Math.sin(2*Math.PI*freq*t));
+      const qy=Math.round(raw/step)*step;
+      ctx.beginPath();ctx.strokeStyle=pcmMode==='bits'?'rgba(0,255,157,.9)':'rgba(255,214,0,.9)';ctx.lineWidth=2;
+      ctx.moveTo(x,H/2);ctx.lineTo(x,qy);ctx.stroke();
+      ctx.beginPath();ctx.arc(x,qy,4,0,Math.PI*2);ctx.fillStyle=pcmMode==='bits'?'var(--g)':'var(--y)';ctx.fill();
+      if(pcmMode==='bits'){
+        const lvl=Math.round((H-qy)/step);const bin=lvl.toString(2).padStart(bits,'0');
+        ctx.save();ctx.font=`bold ${Math.min(10,90/bits)}px Share Tech Mono`;ctx.fillStyle='rgba(0,255,157,.85)';
+        ctx.translate(x+2,Math.min(qy-6,H-18));ctx.rotate(-Math.PI/2);ctx.fillText(bin,0,0);ctx.restore();
+      }
+    }
+  }
+  // center line
+  ctx.beginPath();ctx.strokeStyle='rgba(255,255,255,.1)';ctx.setLineDash([4,4]);ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();ctx.setLineDash([]);
+}
+setTimeout(updatePCM,200);
+
+// QUANTIZATION
+function drawQuant(mode){
+  const cv=document.getElementById('qcanvas');if(!cv)return;
+  const W=cv.offsetWidth||350,H=160;cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d');ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+  const freq=300;const T=0.003;
+  function wave(x){return H/2-(H*.42)*Math.sin(2*Math.PI*freq*(x/W*T))}
+  function alaw(norm){var x=norm*2-1;var A=87.6;var ax=Math.abs(x);var y;if(ax<1/A){y=(A*ax)/(1+Math.log(A));}else{y=(1+Math.log(A*ax))/(1+Math.log(A));}return x>=0?Math.min(y,1):-Math.min(y,1);}
+  if(mode==='uniform'||mode==='compare'){
+    const bits=4;const lvls=16;
+    ctx.beginPath();ctx.strokeStyle='rgba(255,145,0,.9)';ctx.lineWidth=2;
+    let px=0;for(let x=0;x<W;x++){const raw=wave(x);const step=H/lvls;const qy=Math.round(raw/step)*step;if(x===0){ctx.moveTo(x,qy);px=qy}else{ctx.lineTo(x,px);ctx.lineTo(x,qy);px=qy}}ctx.stroke();
+    ctx.fillStyle='rgba(255,145,0,.5)';ctx.font='11px Share Tech Mono';ctx.fillText('Uniforme (4 bits, 16 niveles)',8,14);
+  }
+  if(mode==='alaw'||mode==='compare'){
+    ctx.beginPath();ctx.strokeStyle='rgba(0,255,157,.9)';ctx.lineWidth=2;
+    let prevY=0;const lvls=16;
+    for(let x=0;x<W;x++){const raw=wave(x);const norm=(H-raw)/H;const comp=alaw(norm);const qnorm=Math.round(comp*lvls)/lvls;const qy=H-qnorm*H;if(x===0){ctx.moveTo(x,qy);prevY=qy}else{ctx.lineTo(x,prevY);ctx.lineTo(x,qy);prevY=qy}}ctx.stroke();
+    ctx.fillStyle='rgba(0,255,157,.6)';ctx.font='11px Share Tech Mono';ctx.fillText('A-law (4 bits equiv., mejor SNR débil)',8,mode==='compare'?30:14);
+  }
+  // original
+  ctx.beginPath();ctx.strokeStyle='rgba(0,229,255,.35)';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);
+  for(let x=0;x<W;x++){const y=wave(x);if(x===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)}
+  ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(0,229,255,.5)';ctx.font='10px Share Tech Mono';ctx.fillText('Original',8,mode==='compare'?46:30);
+}
+setTimeout(()=>drawQuant('compare'),300);
+
+// NUMBER PLAN
+let numBuf='';
+const numMap={
+  '02':{region:'Quito / Pichincha',cc:'593',prefix:'02',type:'Fijo geográfico',format:'02-XXXXXXX (7 dígitos locales)'},
+  '04':{region:'Guayaquil / Guayas',cc:'593',prefix:'04',type:'Fijo geográfico',format:'04-XXXXXXX'},
+  '03':{region:'Chimborazo / Centro Sierra',cc:'593',prefix:'03',type:'Fijo geográfico',format:'03-XXXXXXX'},
+  '06':{region:'Esmeraldas / Norte Costa',cc:'593',prefix:'06',type:'Fijo geográfico',format:'06-XXXXXXX'},
+  '07':{region:'Loja / Sur',cc:'593',prefix:'07',type:'Fijo geográfico',format:'07-XXXXXXX'},
+  '09':{region:'Telefonía móvil (celular)',cc:'593',prefix:'09X',type:'Móvil 10 dígitos',format:'09X-XXX-XXXX'},
+  '1800':{region:'Número gratuito nacional',cc:'—',prefix:'1800',type:'Cobro revertido',format:'1-800-XXX-XXX'},
+  '+593':{region:'Código de país Ecuador',cc:'593',prefix:'+593',type:'Marcación internacional',format:'+593 (X) XXX-XXXX'},
+};
+function initNum(){numBuf='';renderNum()}
+function nPress(k){
+  if(k==='+'&&numBuf.length===0){numBuf='+';renderNum();return}
+  if(k==='+'||numBuf.length>=15)return;
+  numBuf+=k;renderNum();
+}
+function nClear(){numBuf=numBuf.slice(0,-1);renderNum()}
+function nDemo(s){numBuf=s;if(s==='02')numBuf='022234567';else if(s==='04')numBuf='042456789';else if(s==='+593')numBuf='+59322234567';else if(s==='1800')numBuf='1800123456';renderNum()}
+function renderNum(){
+  const d=document.getElementById('num-display');
+  d.textContent=numBuf||'_';
+  analyzeNum();
+}
+function analyzeNum(){
+  const bd=document.getElementById('num-breakdown');
+  const ni=document.getElementById('num-info');
+  bd.innerHTML='';
+  if(!numBuf){ni.innerHTML='<span style="color:var(--d)">← Marca un número para decodificarlo</span>';return}
+  let found=null,fkey='';
+  const keys=Object.keys(numMap).sort((a,b)=>b.length-a.length);
+  for(const k of keys){if(numBuf.startsWith(k)){found=numMap[k];fkey=k;break}}
+  if(found){
+    bd.innerHTML=`<div class="nb-seg cc">${numBuf.startsWith('+')?(numBuf.slice(0,4)):found.cc}<br><small>País</small></div>
+      <div class="nb-seg ndc">${found.prefix}<br><small>Área</small></div>
+      <div class="nb-seg sn">${numBuf.slice(fkey.length)||'XXXXXXX'}<br><small>Abonado</small></div>`;
+    ni.innerHTML=`<strong style="color:var(--c)">${found.region}</strong><br>Tipo: ${found.type}<br>Formato: <span style="color:var(--y)">${found.format}</span>`;
+  } else {
+    ni.innerHTML=`<span style="color:var(--d)">Número no reconocido aún. Sigue marcando...</span>`;
+  }
+}
+
+// ERLANG B (approx Poisson)
+function erlangB(A,N){
+  let B=1;for(let n=1;n<=N;n++)B=(A*B)/(n+A*B);return B;
+}
+function calcErlang(){
+  const calls=+document.getElementById('er-calls').value;
+  const dur=+document.getElementById('er-dur').value;
+  const N=+document.getElementById('er-ch').value;
+  const A=calls*dur/60;
+  const B=erlangB(A,N)*100;
+  document.getElementById('er-traffic').textContent=A.toFixed(2);
+  const gosEl=document.getElementById('er-gos');gosEl.textContent=B.toFixed(2)+'%';
+  gosEl.style.color=B<1?'var(--g)':B<5?'var(--y)':'var(--r)';
+  const util=Math.min(100,A/N*100);
+  document.getElementById('util-bar').style.width=util+'%';
+  document.getElementById('util-pct').textContent=util.toFixed(1)+'%';
+  // highlight row
+  document.querySelectorAll('.er-table tbody tr').forEach(r=>r.classList.remove('hi'));
+}
+setTimeout(calcErlang,200);
+
+// SS7 LAYER DATA
+var ss7Data=[
+  {name:'MAP / CAP / INAP',full:'Capa de Aplicacion SS7',desc:'Mobile Application Part (MAP): señalizacion GSM y roaming. CAMEL Application Part (CAP): servicios de red inteligente IN. INAP: Red Inteligente. Equivale a la capa 7 del modelo OSI. Aqui viven: numero portado, prepago, 1-800, SMS sobre PSTN.'},
+  {name:'TCAP',full:'Transaction Capabilities Application Part',desc:'Protocolo de transaccion sin conexion sobre SS7. Permite consultas de base de datos en tiempo real: por ejemplo, consultar si un numero fue portado al SCP antes de enrutar la llamada. Equivale a capas 5-7 del OSI.'},
+  {name:'SCCP',full:'Signaling Connection Control Part',desc:'Añade direccionamiento global (Global Title) sobre MTP3. Permite enrutar mensajes SS7 sin conocer la direccion de la central destino. Esencial para portabilidad numerica. Clases: 0 (sin conexion) y 2 (con conexion virtual).'},
+  {name:'MTP-3',full:'Message Transfer Part Level 3 - Red',desc:'Enrutamiento de mensajes entre nodos SS7. Gestion de la red de señalizacion: manejo de fallos, balanceo de carga entre STPs. Define los codigos de punto (Point Codes) que identifican cada nodo SS7.'},
+  {name:'MTP-2',full:'Message Transfer Part Level 2 - Enlace',desc:'Control del enlace de señalizacion: deteccion de errores (CRC), retransmision, numeracion de secuencia. Garantiza entrega ordenada y libre de errores entre STPs/SSPs adyacentes. Velocidades: 64 kbps o 2 Mbps.'},
+  {name:'MTP-1',full:'Message Transfer Part Level 1 - Fisica',desc:'Define las caracteristicas fisicas del enlace de señalizacion: usa el mismo E1 (TS-16 en CAS o enlace dedicado en CCS7). Velocidades: 4.8 kbps (analogico), 56/64 kbps (digital), hasta 2 Mbps.'}
+];
+function ss7layer(idx){
+  var d=ss7Data[idx];
+  document.getElementById('ss7-desc-box').innerHTML='<strong style="color:var(--c);display:block;margin-bottom:6px">'+d.name+' — '+d.full+'</strong>'+d.desc;
+}
+
+// ISDN
+function showIsdn(type){ buildIsdn(); }
+function buildIsdn(){
+  const bri=document.getElementById('bri-ch');
+  const pri=document.getElementById('pri-ch');
+  if(!bri||!pri)return;
+  bri.innerHTML='';pri.innerHTML='';
+  const briInfo=document.getElementById('bri-info');
+  const priInfo=document.getElementById('pri-info');
+  // BRI: 2B + 1D
+  ['B1','B2'].forEach(function(ch){
+    const el=document.createElement('div');
+    el.className='ich b';el.textContent=ch;
+    el.onclick=function(e){
+      e.stopPropagation();
+      briInfo.textContent=ch+': Canal Bearer, 64 kbps. Transporta voz G.711 o datos. Los 2 canales B permiten 2 llamadas simultaneas o 128 kbps de Internet.';
+      el.classList.toggle('active-ch');
+    };
+    bri.appendChild(el);
+  });
+  const dBri=document.createElement('div');
+  dBri.className='ich d';dBri.textContent='D (16k)';
+  dBri.onclick=function(e){
+    e.stopPropagation();
+    briInfo.textContent='Canal D, 16 kbps: Transporta señalizacion Q.931. Establece y libera llamadas en los canales B. Tambien puede cargar datos X.25.';
+  };
+  bri.appendChild(dBri);
+  briInfo.textContent='BRI = 2B + D | Total: 2x64 + 16 = 144 kbps netos. Haz clic en un canal.';
+  // PRI: 30B + 1D
+  for(var i=1;i<=30;i++){
+    (function(idx){
+      const el=document.createElement('div');
+      el.className='ich b';el.textContent='B'+idx;
+      el.style.fontSize='.58rem';el.style.padding='5px 6px';
+      el.onclick=function(e){
+        e.stopPropagation();
+        priInfo.textContent='B'+idx+': Canal de voz 64 kbps. Con 30 canales B se pueden tener 30 llamadas simultaneas. Conecta PBX corporativas a la PSTN.';
+      };
+      pri.appendChild(el);
+    })(i);
+  }
+  const dPri=document.createElement('div');
+  dPri.className='ich d';dPri.textContent='D(64k)';
+  dPri.style.fontSize='.58rem';dPri.style.padding='5px 6px';
+  dPri.onclick=function(e){
+    e.stopPropagation();
+    priInfo.textContent='Canal D, 64 kbps: Señalizacion Q.931 para los 30 canales B. Un canal D puede controlar hasta 4 PRI (canal D comun).';
+  };
+  pri.appendChild(dPri);
+  priInfo.textContent='PRI = 30B + D + TS0 | Igual a E1: 2.048 Mbps. Estandar para PBX empresariales. Haz clic en un canal.';
+}
+
+// MOS
+const codecs=[
+  {name:'G.711 A-law/μ-law (PSTN)',bw:64,mos:4.4,color:'var(--c)'},
+  {name:'G.722 HD Voice',bw:64,mos:4.5,color:'var(--p)'},
+  {name:'G.729A (VoIP estándar)',bw:8,mos:3.92,color:'var(--g)'},
+  {name:'G.723.1 (videollamada)',bw:6.3,mos:3.9,color:'var(--y)'},
+  {name:'Opus (WhatsApp/WebRTC)',bw:24,mos:4.3,color:'var(--o)'},
+  {name:'GSM-FR (móvil 2G)',bw:13,mos:3.5,color:'var(--r)'},
+];
+function buildMOS(){
+  // MOS scale
+  const mosData=[
+    {score:'4.3-5.0',label:'Excelente',desc:'No se percibe compresión',color:'var(--g)',w:90},
+    {score:'4.0-4.3',label:'Buena',desc:'Ligeramente comprimida',color:'var(--c)',w:72},
+    {score:'3.6-4.0',label:'Aceptable',desc:'Pequeñas distorsiones',color:'var(--y)',w:55},
+    {score:'3.1-3.6',label:'Regular',desc:'Distorsión notable',color:'var(--o)',w:38},
+    {score:'1.0-3.1',label:'Mala',desc:'Difícil de entender',color:'var(--r)',w:20},
+  ];
+  const mm=document.getElementById('mos-meter');mm.innerHTML='';
+  mosData.forEach(m=>{
+    mm.innerHTML+=`<div class="mos-bar-wrap"><div class="mos-bar-label" style="color:${m.color}">${m.label} (${m.score})</div>
+      <div class="mos-track"><div class="mos-fill" style="width:${m.w}%;background:${m.color}"></div></div>
+      <div class="mos-val" style="color:${m.color}">${m.score.split('-')[1]}</div></div>`;
+  });
+  // codecs
+  const cl=document.getElementById('codec-list');cl.innerHTML='';
+  codecs.forEach(c=>{
+    cl.innerHTML+=`<div style="margin-bottom:6px">
+      <div style="display:flex;justify-content:space-between;font-size:.75rem;margin-bottom:3px">
+        <span style="color:var(--t)">${c.name}</span>
+        <span style="font-family:'Share Tech Mono',monospace;color:${c.color}">${c.bw} kbps · MOS ${c.mos}</span>
+      </div>
+      <div style="background:var(--s2);border-radius:4px;height:8px;overflow:hidden">
+        <div style="height:100%;width:${c.mos/5*100}%;background:${c.color};border-radius:4px;transition:width .8s ease"></div>
+      </div></div>`;
+  });
+}
+
+// SOFTSWITCH DIAGRAM
+const swNodes=[
+  {ico:'📱',lbl:'SIP Phone',x:6,y:25,cls:'rgba(0,229,255,.15)',bc:'var(--c)',color:'var(--c)',desc:'Teléfono IP (SIP): registra su ubicación en el Softswitch vía SIP REGISTER. Envía INVITE para llamar. Comunica directamente en paquetes RTP/IP.'},
+  {ico:'🔌',lbl:'PSTN/E1',x:6,y:65,cls:'rgba(255,61,90,.15)',bc:'var(--r)',color:'var(--r)',desc:'Interfaz PSTN (E1/T1): entrada de la red telefónica pública al Media Gateway. Los circuitos TDM de 64 kbps se convierten a paquetes RTP aquí.'},
+  {ico:'🖧',lbl:'Media Gateway',x:28,y:65,cls:'rgba(255,214,0,.15)',bc:'var(--y)',color:'var(--y)',desc:'Media Gateway (MGW): convierte voz TDM ↔ RTP/IP. Controlado por el Softswitch vía H.248/Megaco. Procesa el audio real de las llamadas PSTN.'},
+  {ico:'🧠',lbl:'Softswitch / MGC',x:50,y:45,cls:'rgba(0,229,255,.15)',bc:'var(--c)',color:'var(--c)',desc:'Softswitch (Media Gateway Controller): el "cerebro". Procesa SIP/SS7, decide el enrutamiento, controla el MGW. Ejemplos: FreeSWITCH, Asterisk, Cisco BTS. Corre en Linux x86 estándar.'},
+  {ico:'🗄️',lbl:'SCP / HLR',x:72,y:20,cls:'rgba(199,125,255,.15)',bc:'var(--p)',color:'var(--p)',desc:'Service Control Point (SCP/HLR): base de datos de servicios. Consultas de portabilidad numérica, prepago, servicios IN. El Softswitch consulta aquí antes de enrutar.'},
+  {ico:'⚙️',lbl:'App Server',x:72,y:65,cls:'rgba(0,255,157,.15)',bc:'var(--g)',color:'var(--g)',desc:'Application Server: lógica de servicios avanzados. Buzón de voz, IVR, grabación, conferencia, call center ACD. Se comunica con el Softswitch vía SIP.'},
+  {ico:'🌐',lbl:'Internet / IP',x:90,y:45,cls:'rgba(0,229,255,.08)',bc:'var(--c)',color:'var(--d)',desc:'Red IP: el transporte unificado. Todo el tráfico de voz, datos y señalización viaja sobre paquetes IP. QoS (DiffServ/DSCP) prioriza los paquetes de voz.'},
+];
+function buildSoftswitch(){
+  const dg=document.getElementById('sw-diagram');
+  // keep sw-info
+  const info=document.getElementById('sw-info');
+  dg.innerHTML='';dg.appendChild(info);
+  const w=dg.offsetWidth,h=dg.offsetHeight;
+  swNodes.forEach((n,i)=>{
+    const wrap=document.createElement('div');wrap.className='sw-node';
+    wrap.style.cssText=`left:${n.x}%;top:${n.y}%;transform:translate(-50%,-50%);position:absolute`;
+    const box=document.createElement('div');box.className='sw-box';
+    box.style.cssText=`background:${n.cls};border-color:${n.bc};color:${n.color}`;
+    box.innerHTML=`${n.ico}<br>${n.lbl}`;
+    box.onclick=()=>{info.textContent=n.desc;info.style.opacity='1'};
+    wrap.appendChild(box);dg.appendChild(wrap);
+  });
+}
+function swHighlight(type){}
+
+// QUIZ
+const quiz=[
+  {q:'¿Cuál es la fórmula del SNR para PCM lineal?',opts:['SNR = 3.01×n + 1.76 dB','SNR = 6.02×n + 1.76 dB','SNR = 8×n dB','SNR = 10×log₁₀(2ⁿ) dB'],ans:1,fb:'✅ Correcto. La fórmula de Bennet: SNR = 6.02n + 1.76 dB. Para 8 bits → SNR ≈ 49.9 dB. Por eso el estándar G.711 usa 8 bits (SNR suficiente para voz).'},
+  {q:'¿Qué ventaja ofrece la cuantización A-law sobre la uniforme?',opts:['Mayor velocidad de bits','Mejor calidad en señales débiles (susurros)','Menos bits por muestra','Solo funciona con voz masculina'],ans:1,fb:'✅ Correcto. A-law usa cuantización no uniforme: más niveles para señales débiles. Con 8 bits no uniformes se obtiene calidad equivalente a ~13 bits uniformes.'},
+  {q:'¿Cuál es el código de país ITU-T E.164 para Ecuador?',opts:['591','592','593','595'],ans:2,fb:'✅ Correcto. Ecuador = +593. Para llamar a Quito desde el exterior: +593 2 XXXXXXX. ARCOTEL gestiona el plan nacional bajo el estándar E.164.'},
+  {q:'Si una central recibe 180 llamadas/hora con duración promedio de 2 minutos, ¿cuántos Erlangs es el tráfico?',opts:['2.0 Erlangs','6.0 Erlangs','3.0 Erlangs','180 Erlangs'],ans:1,fb:'✅ Correcto. A = λ × h = (180 llamadas/60 min) × 2 min = 6.0 Erlangs. Con 10 canales la probabilidad de bloqueo sería ~18%. Necesitas ~12-13 canales para GoS ≤1%.'},
+  {q:'¿Qué nodo SS7 actúa como "router" de mensajes de señalización?',opts:['SSP — Service Switching Point','SCP — Service Control Point','STP — Signal Transfer Point','SMP — Service Management Point'],ans:2,fb:'✅ Correcto. El STP (Signal Transfer Point) es el router de la red de señalización SS7. No procesa llamadas de voz, solo mensajes de señalización. Siempre trabaja en pares por redundancia.'},
+  {q:'¿Cuántos canales B tiene una interfaz ISDN PRI (estándar europeo E1)?',opts:['2 canales B','23 canales B','30 canales B','32 canales B'],ans:2,fb:'✅ Correcto. ISDN PRI europeo = 30B + 1D + TS0. Los 30 canales B son de 64 kbps cada uno. El canal D (64 kbps) maneja la señalización Q.931 para todos los B.'},
+  {q:'¿Cuál es el rango de MOS considerado "buena calidad" según ITU-T P.800?',opts:['1.0 – 2.0','2.5 – 3.0','4.0 – 4.3','5.0 solamente'],ans:2,fb:'✅ Correcto. MOS 4.0-4.3 = Buena calidad (ligeramente comprimida pero aceptable). Excelente: 4.3-5.0. Regular: 3.1-3.6. El G.711 PSTN alcanza MOS ≈ 4.4.'},
+  {q:'¿Cuál es el principal fraude de telecomunicaciones que genera ~USD 3.2 billones anuales?',opts:['CLI Spoofing','Phreaking (Blue Box)','IRSF — International Revenue Share Fraud','Robocalling'],ans:2,fb:'✅ Correcto. IRSF (International Revenue Share Fraud): el atacante compromete una PBX y genera llamadas masivas a números premium que él controla. Las víctimas en Ecuador han perdido USD 20-100K en un fin de semana.'},
+];
+let qi=0,qs=0;
+function startQuiz(){qi=0;qs=0;renderQ()}
+function renderQ(){
+  const body=document.getElementById('quiz-body');
+  if(qi>=quiz.length){
+    const pct=Math.round(qs/quiz.length*100);
+    const stars=pct>=90?'⭐⭐⭐':pct>=60?'⭐⭐':'⭐';
+    const msg=pct>=90?'¡Dominas la PSTN! 🏆':pct>=70?'¡Muy bien! Casi perfecto 👏':pct>=50?'Bien, repasa los temas donde fallaste 📖':'Revisa el material antes del examen 💪';
+    body.innerHTML=`<div class="fw">
+      <div class="sring"><div class="sbig">${pct}%</div><div class="ssub">${qs}/${quiz.length} correctas</div></div>
+      <div style="font-size:2rem">${stars}</div>
+      <div class="smsg">${msg}</div>
+      <button class="srs" onclick="startQuiz()">🔄 REPETIR QUIZ</button>
+    </div>`;return;
+  }
+  const q=quiz[qi];
+  body.innerHTML=`<div class="qcard">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span class="badge bc">Pregunta ${qi+1} / ${quiz.length}</span>
+      <span class="qsc">✅ ${qs} aciertos</span>
+    </div>
+    <div class="qtext">${q.q}</div>
+    <div class="qopts">
+      ${q.opts.map((o,i)=>`<div class="qopt" id="qo${i}" onclick="pQ(${i})"><div class="qltr">${'ABCD'[i]}</div>${o}</div>`).join('')}
+    </div>
+    <div id="qfb" class="qfb"></div>
+    <div class="qnav" id="qnav" style="display:none">
+      <span class="qsc" id="qnav-sc"></span>
+      <button class="qbtn" onclick="nQ()">${qi<quiz.length-1?'SIGUIENTE →':'VER RESULTADO 🏆'}</button>
+    </div>
+  </div>`;
+}
+function pQ(i){
+  if(document.querySelector('.qopt.locked'))return;
+  const q=quiz[qi];
+  document.querySelectorAll('.qopt').forEach(o=>o.classList.add('locked'));
+  document.getElementById(`qo${i}`).classList.add(i===q.ans?'correct':'wrong');
+  if(i!==q.ans)document.getElementById(`qo${q.ans}`).classList.add('correct');
+  const ok=i===q.ans;if(ok)qs++;
+  const fb=document.getElementById('qfb');
+  fb.textContent=ok?q.fb:'❌ Incorrecto. '+q.fb;
+  fb.className='qfb '+(ok?'ok':'fail');
+  document.getElementById('qnav').style.display='flex';
+  document.getElementById('qnav-sc').textContent=`${qs}/${qi+1} correctas`;
+}
+function nQ(){qi++;renderQ()}
+</script>
+</body>
+</html>
